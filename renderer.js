@@ -4274,6 +4274,7 @@ const ALL_APPS = [
   { id: 'browser', icon: '🌐', name: '浏览器', desc: 'Chromium 内核网页浏览器', category: '网络' },
   { id: 'ssh', icon: '🔐', name: 'SSH', desc: '远程服务器连接管理', category: '网络' },
   { id: 'linux', icon: '🐧', name: 'Linux', desc: 'Linux 模拟终端环境', category: '开发' },
+  { id: 'linuxkernel', icon: '🐧', name: 'Linux 内核', desc: 'v86 WebAssembly 真实 Linux 内核', category: '开发' },
   { id: 'monitor', icon: '📊', name: '监视器', desc: '实时 CPU/内存/磁盘/网络', category: '系统' },
   { id: 'weather', icon: '🌤️', name: '天气', desc: '实时天气与预报信息', category: '生活' },
   { id: 'notes', icon: '📝', name: '备忘录', desc: '多笔记管理，自动保存', category: '效率' },
@@ -4302,7 +4303,7 @@ function getInstalledApps() {
     return list
   }
   const def = ALL_APPS.filter(a => a.core || !['linux','trash'].includes(a.id)).map(a => a.id)
-  const extras = ['devtools','clipboard','editor','disk','pomodoro','converter','process']
+  const extras = ['devtools','clipboard','editor','disk','pomodoro','converter','process','linuxkernel']
   extras.forEach(id => { if (!def.includes(id)) def.push(id) })
   localStorage.setItem('glassos_installed', JSON.stringify(def))
   return def
