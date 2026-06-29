@@ -1,0 +1,10 @@
+node_modules/
+v86-images/
+*.lnk
+dist/
+build/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local

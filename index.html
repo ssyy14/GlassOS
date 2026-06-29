@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlassOS</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="node_modules/xterm/css/xterm.css">
+</head>
+<body>
+  <!-- 启动画面 -->
+  <div class="boot-screen" id="bootScreen">
+    <div class="boot-logo">🪟</div>
+    <div class="boot-text">GlassOS</div>
+    <div class="boot-bar"><div class="boot-bar-fill"></div></div>
+  </div>
+
+  <div class="desktop" id="desktop">
+    <div class="bg-layer"></div>
+    <div class="bg-glass-panel"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-noise"></div>
+    <div class="bg-vignette"></div>
+    <div class="bg-orbs">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+    </div>
+    <div class="caustic"></div>
+    <div class="bg-light-streak"></div>
+    <canvas class="weather-particles-canvas" id="weatherParticles"></canvas>
+    <canvas class="water-surface-canvas" id="waterSurfaceCanvas"></canvas>
+    <div class="multi-ripple-container" id="multiRippleContainer"></div>
+    <div class="mouse-wave-distort hidden" id="mouseWaveDistort"></div>
+    <div class="mouse-light" id="mouseLight"></div>
+    <div class="mouse-glass-distort" id="mouseGlass"></div>
+
+    <div class="topbar" id="topbar">
+      <div class="topbar-left">
+        <span class="topbar-logo">&#9670;</span>
+        <span class="topbar-title">GlassOS</span>
+      </div>
+      <div class="topbar-center" id="topbarTime"></div>
+      <div class="topbar-right">
+        <span class="topbar-icon" title="Wi-Fi">&#128246;</span>
+        <span class="topbar-icon" title="音量">&#128266;</span>
+        <span class="topbar-icon" title="电池">&#128267;</span>
+        <div class="topbar-notif-trigger" id="notifTrigger" title="通知中心">
+          <span class="topbar-icon">&#128276;</span>
+          <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </div>
+        <span class="topbar-icon" title="锁屏" style="cursor:pointer" onclick="lockScreen()">🔒</span>
+        <span class="topbar-icon" id="themeToggle" title="切换主题" style="cursor:pointer">🌙</span>
+        <span class="topbar-icon topbar-menu" id="controlMenu">&#9776;</span>
+      </div>
+    </div>
+
+    <!-- 通知中心面板 -->
+    <div class="notif-panel" id="notifPanel">
+      <div class="notif-header">
+        <span class="notif-title">通知中心</span>
+        <button class="notif-clear-btn" id="notifClearBtn">清除全部</button>
+      </div>
+      <div class="notif-list" id="notifList">
+        <div class="notif-empty">暂无通知</div>
+      </div>
+    </div>
+
+    <div class="desktop-icons" id="desktopIcons">
+      <div class="desktop-icon" data-app="finder" ondblclick="openApp('finder')">
+        <div class="desktop-icon-img">&#128194;</div>
+        <div class="desktop-icon-label">访达</div>
+      </div>
+      <div class="desktop-icon" data-app="terminal" ondblclick="openApp('terminal')">
+        <div class="desktop-icon-img">&#128187;</div>
+        <div class="desktop-icon-label">终端</div>
+      </div>
+      <div class="desktop-icon" data-app="linux" ondblclick="openApp('linux')">
+        <div class="desktop-icon-img">&#128037;</div>
+        <div class="desktop-icon-label">Linux</div>
+      </div>
+      <div class="desktop-icon" data-app="linuxkernel" ondblclick="openApp('linuxkernel')">
+        <div class="desktop-icon-img">&#128038;</div>
+        <div class="desktop-icon-label">Linux 内核</div>
+      </div>
+      <div class="desktop-icon" data-app="notes" ondblclick="openApp('notes')">
+        <div class="desktop-icon-img">&#128221;</div>
+        <div class="desktop-icon-label">备忘录</div>
+      </div>
+      <div class="desktop-icon" data-app="calc" ondblclick="openApp('calc')">
+        <div class="desktop-icon-img">&#129518;</div>
+        <div class="desktop-icon-label">计算器</div>
+      </div>
+      <div class="desktop-icon" data-app="weather" ondblclick="openApp('weather')">
+        <div class="desktop-icon-img">&#127780;</div>
+        <div class="desktop-icon-label">天气</div>
+      </div>
+      <div class="desktop-icon" data-app="settings" ondblclick="openApp('settings')">
+        <div class="desktop-icon-img">&#9881;</div>
+        <div class="desktop-icon-label">设置</div>
+      </div>
+      <div class="desktop-icon" data-app="ssh" ondblclick="openApp('ssh')">
+        <div class="desktop-icon-img">&#128274;</div>
+        <div class="desktop-icon-label">SSH</div>
+      </div>
+      <div class="desktop-icon" data-app="player" ondblclick="openApp('player')">
+        <div class="desktop-icon-img">🎵</div>
+        <div class="desktop-icon-label">音乐</div>
+      </div>
+      <div class="desktop-icon" data-app="browser" ondblclick="openApp('browser')">
+        <div class="desktop-icon-img">🌐</div>
+        <div class="desktop-icon-label">浏览器</div>
+      </div>
+      <div class="desktop-icon" data-app="monitor" ondblclick="openApp('monitor')">
+        <div class="desktop-icon-img">📊</div>
+        <div class="desktop-icon-label">监视器</div>
+      </div>
+      <div class="desktop-icon" data-app="calendar" ondblclick="openApp('calendar')">
+        <div class="desktop-icon-img">📅</div>
+        <div class="desktop-icon-label">日历</div>
+      </div>
+      <div class="desktop-icon" data-app="store" ondblclick="openApp('store')">
+        <div class="desktop-icon-img">🛍️</div>
+        <div class="desktop-icon-label">应用市场</div>
+      </div>
+      <div class="desktop-icon" data-app="mineradio" ondblclick="openApp('mineradio')">
+        <div class="desktop-icon-img">📻</div>
+        <div class="desktop-icon-label">Mineradio</div>
+      </div>
+      <div class="desktop-icon" data-app="trash" ondblclick="openApp('trash')">
+        <div class="desktop-icon-img">🗑️</div>
+        <div class="desktop-icon-label">回收站</div>
+      </div>
+      <div class="desktop-icon" data-app="clipboard" ondblclick="openApp('clipboard')">
+        <div class="desktop-icon-img">📋</div>
+        <div class="desktop-icon-label">剪贴板</div>
+      </div>
+      <div class="desktop-icon" data-app="editor" ondblclick="openApp('editor')">
+        <div class="desktop-icon-img">📝</div>
+        <div class="desktop-icon-label">编辑器</div>
+      </div>
+      <div class="desktop-icon" data-app="pomodoro" ondblclick="openApp('pomodoro')">
+        <div class="desktop-icon-img">🍅</div>
+        <div class="desktop-icon-label">番茄钟</div>
+      </div>
+      <div class="desktop-icon" data-app="converter" ondblclick="openApp('converter')">
+        <div class="desktop-icon-img">🔄</div>
+        <div class="desktop-icon-label">换算器</div>
+      </div>
+      <div class="desktop-icon" data-app="disk" ondblclick="openApp('disk')">
+        <div class="desktop-icon-img">💾</div>
+        <div class="desktop-icon-label">磁盘分析</div>
+      </div>
+      <div class="desktop-icon" data-app="process" ondblclick="openApp('process')">
+        <div class="desktop-icon-img">⚙</div>
+        <div class="desktop-icon-label">进程管理</div>
+      </div>
+      <div class="desktop-icon" data-app="devtools" ondblclick="openApp('devtools')">
+        <div class="desktop-icon-img">🔧</div>
+        <div class="desktop-icon-label">开发者工具</div>
+      </div>
+    </div>
+
+    <div class="desktop-widgets" id="desktopWidgets"></div>
+
+    <div class="windows-container" id="windowsContainer"></div>
+
+    <!-- Spotlight 全局搜索 -->
+    <div class="spotlight-overlay" id="spotlight" onclick="if(event.target===this)closeSpotlight()">
+      <div class="spotlight-panel">
+        <div class="spotlight-input-row">
+          <span class="spotlight-icon">🔍</span>
+          <input class="spotlight-input" id="spotlightInput" placeholder="搜索应用、文件、设置..." autofocus />
+          <span class="spotlight-shortcut">ESC</span>
+        </div>
+        <div class="spotlight-results" id="spotlightResults"></div>
+      </div>
+    </div>
+
+    <!-- Launchpad 覆盖层 -->
+    <div class="launchpad-overlay" id="launchpad" onclick="if(event.target===this)closeLaunchpad()">
+      <div class="launchpad-bg"></div>
+      <div class="launchpad-content">
+        <div class="launchpad-search">
+          <span class="launchpad-search-icon">🔍</span>
+          <input class="launchpad-search-input" id="launchpadSearch" placeholder="搜索应用..." autofocus>
+        </div>
+        <div class="launchpad-grid" id="launchpadGrid"></div>
+      </div>
+    </div>
+
+
+    <div class="dock" id="dock">
+      <div class="dock-glow"></div>
+      <div class="dock-item launchpad-trigger" data-label="启动台" onclick="openLaunchpad()">
+        <div class="dock-icon-glow"></div>
+        <span>🧩</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="finder" data-label="访达" onclick="openApp('finder')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128194;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="terminal" data-label="终端" onclick="openApp('terminal')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128187;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="notes" data-label="备忘录" onclick="openApp('notes')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128221;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="calc" data-label="计算器" onclick="openApp('calc')">
+        <div class="dock-icon-glow"></div>
+        <span>&#129518;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="weather" data-label="天气" onclick="openApp('weather')">
+        <div class="dock-icon-glow"></div>
+        <span>&#127780;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-divider"></div>
+      <div class="dock-item" data-app="linux" data-label="Linux" onclick="openApp('linux')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128037;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="linuxkernel" data-label="Linux内核" onclick="openApp('linuxkernel')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128038;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="ssh" data-label="SSH" onclick="openApp('ssh')">
+        <div class="dock-icon-glow"></div>
+        <span>&#128274;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="player" data-label="音乐" onclick="openApp('player')">
+        <div class="dock-icon-glow"></div>
+        <span>🎵</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="browser" data-label="浏览器" onclick="openApp('browser')">
+        <div class="dock-icon-glow"></div>
+        <span>🌐</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="monitor" data-label="监视器" onclick="openApp('monitor')">
+        <div class="dock-icon-glow"></div>
+        <span>📊</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="calendar" data-label="日历" onclick="openApp('calendar')">
+        <div class="dock-icon-glow"></div>
+        <span>📅</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="store" data-label="应用市场" onclick="openApp('store')">
+        <div class="dock-icon-glow"></div>
+        <span>🛍️</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="mineradio" data-label="Mineradio" onclick="openApp('mineradio')">
+        <div class="dock-icon-glow"></div>
+        <span>📻</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="settings" data-label="设置" onclick="openApp('settings')">
+        <div class="dock-icon-glow"></div>
+        <span>&#9881;</span>
+        <div class="dock-dot"></div>
+      </div>
+      <div class="dock-item" data-app="devtools" data-label="开发者工具" onclick="openApp('devtools')">
+        <div class="dock-icon-glow"></div>
+        <span>🔧</span>
+        <div class="dock-dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>console.log('[GlassOS] page loading...');</script>
+  <script src="renderer.js"></script>
+  <script src="v86-linux.js"></script>
+  <!-- 锁屏 -->
+  <div class="lockscreen" id="lockscreen">
+    <div class="lock-bg"></div>
+    <div class="lock-content">
+      <div class="lock-time" id="lockTime">00:00</div>
+      <div class="lock-date" id="lockDate">---</div>
+      <div class="lock-avatar-ring">
+        <div class="lock-avatar">👤</div>
+      </div>
+      <div class="lock-username">GlassOS User</div>
+      <div class="lock-input-group">
+        <input class="lock-input" id="lockInput" type="password" placeholder="输入密码" maxlength="20" onkeydown="if(event.key==='Enter')unlockScreen()">
+        <button class="lock-submit" onclick="unlockScreen()">→</button>
+      </div>
+      <div class="lock-hint">默认密码: 1234</div>
+      <div class="lock-error" id="lockError"></div>
+    </div>
+  </div>
+</body>
+</html>
