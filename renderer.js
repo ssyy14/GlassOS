@@ -1074,8 +1074,8 @@ function openV86Linux() {
         </div>
         <div id="v86Loading" style="position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#8b949e;">
           <div style="font-size:48px;">🐧</div>
-          <div style="font-size:16px;color:#c9d1d9;">正在加载 Linux 内核...</div>
-          <div style="font-size:12px;">首次启动需下载 ~50MB 镜像，请耐心等待</div>
+          <div style="font-size:16px;color:#c9d1d9;">正在启动 Linux 内核...</div>
+          <div style="font-size:12px;">通过 v86 WebAssembly 模拟器加载</div>
           <div id="v86LoadProgress" style="width:200px;height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;">
             <div id="v86LoadBar" style="width:0%;height:100%;background:linear-gradient(90deg,#3fb950,#58a6ff);border-radius:2px;transition:width 0.3s;"></div>
           </div>
@@ -1094,7 +1094,7 @@ function openV86Linux() {
     if (!screenContainer || !loading) return
 
     try {
-      status.textContent = '加载 v86 引擎...'
+      status.textContent = '初始化 v86 模拟器...'
 
       await new Promise((resolve, reject) => {
         if (window.V86) { resolve(); return }
@@ -1105,7 +1105,7 @@ function openV86Linux() {
         document.head.appendChild(script)
       })
 
-      status.textContent = '下载 Linux 内核...'
+      status.textContent = '启动 Linux 内核...'
       loadBar.style.width = '30%'
 
       const progressInterval = setInterval(() => {
@@ -1114,41 +1114,20 @@ function openV86Linux() {
       }, 500)
 
       const wasmPath = (window.__dirname || '.') + '/node_modules/v86/build/v86.wasm'
-      const IMAGE_BASE = 'https://hub.gitmirror.com/https://raw.githubusercontent.com/niclas-niclas/niclas/refs/heads/master/images'
+      const imgPath = (window.__dirname || '.') + '/v86-images'
 
       let emulator
-      try {
-        emulator = new V86({
-          wasm_path: wasmPath,
-          memory_size: 256 * 1024 * 1024,
-          vga_memory_size: 8 * 1024 * 1024,
-          screen_container: screenContainer,
-          bios: { url: IMAGE_BASE + '/seabios.bin' },
-          vga_bios: { url: IMAGE_BASE + '/vgabios.bin' },
-          hda: { url: IMAGE_BASE + '/linux66-rootfs2-v86', async: true, size: 256 * 1024 * 1024 },
-          bzimage: { url: IMAGE_BASE + '/linux66-bzimage-v86' },
-          cmdline: 'root=/dev/sda rw rootfstype=ext4 init=/sbin/init',
-          autostart: true,
-          bzimage_initrd_from_filesystem: true,
-        })
-      } catch (e) {
-        clearInterval(progressInterval)
-        status.textContent = '尝试备用镜像源...'
-        loadBar.style.width = '30%'
-        const BACKUP = 'https://copy.sh/v86/image'
-        emulator = new V86({
-          wasm_path: wasmPath,
-          memory_size: 256 * 1024 * 1024,
-          vga_memory_size: 8 * 1024 * 1024,
-          screen_container: screenContainer,
-          bios: { url: BACKUP + '/seabios.bin' },
-          vga_bios: { url: BACKUP + '/vgabios.bin' },
-          hda: { url: BACKUP + '/linux3.img', async: true },
-          bzimage: { url: BACKUP + '/bzimage' },
-          cmdline: 'root=/dev/sda rw',
-          autostart: true,
-        })
-      }
+      emulator = new V86({
+        wasm_path: wasmPath,
+        memory_size: 256 * 1024 * 1024,
+        vga_memory_size: 8 * 1024 * 1024,
+        screen_container: screenContainer,
+        bios: { url: imgPath + '/seabios.bin' },
+        vga_bios: { url: imgPath + '/vgabios.bin' },
+        bzimage: { url: imgPath + '/buildroot-bzimage68.bin' },
+        cmdline: 'root=/dev/ram rw',
+        autostart: true,
+      })
 
       clearInterval(progressInterval)
       loadBar.style.width = '100%'

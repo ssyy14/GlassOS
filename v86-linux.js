@@ -11,10 +11,7 @@ class V86Linux {
     await new Promise((resolve, reject) => {
       if (window.V86) { resolve(); return }
       const script = document.createElement('script')
-      const v86Path = window.__dirname
-        ? window.__dirname + '/node_modules/v86/build/libv86.js'
-        : 'node_modules/v86/build/libv86.js'
-      script.src = v86Path
+      script.src = (window.__dirname || '.') + '/node_modules/v86/build/libv86.js'
       script.onload = resolve
       script.onerror = () => reject(new Error('无法加载 v86 引擎'))
       document.head.appendChild(script)
@@ -26,25 +23,19 @@ class V86Linux {
   async boot() {
     await this.init()
 
-    const wasmPath = window.__dirname
-      ? window.__dirname + '/node_modules/v86/build/v86.wasm'
-      : 'node_modules/v86/build/v86.wasm'
-
-    const IMAGE_BASE = 'https://hub.gitmirror.com/https://raw.githubusercontent.com/niclas-niclas/niclas/refs/heads/master/images'
+    const wasmPath = (window.__dirname || '.') + '/node_modules/v86/build/v86.wasm'
+    const imgPath = (window.__dirname || '.') + '/v86-images'
 
     this.emulator = new V86({
       wasm_path: wasmPath,
       memory_size: 256 * 1024 * 1024,
       vga_memory_size: 8 * 1024 * 1024,
       screen_container: this.screen,
-      bios: { url: IMAGE_BASE + '/seabios.bin' },
-      vga_bios: { url: IMAGE_BASE + '/vgabios.bin' },
-      hda: { url: IMAGE_BASE + '/linux66-rootfs2-v86', async: true, size: 256 * 1024 * 1024 },
-      bzimage: { url: IMAGE_BASE + '/linux66-bzimage-v86' },
-      cmdline: 'root=/dev/sda rw rootfstype=ext4 init=/sbin/init',
+      bios: { url: imgPath + '/seabios.bin' },
+      vga_bios: { url: imgPath + '/vgabios.bin' },
+      bzimage: { url: imgPath + '/buildroot-bzimage68.bin' },
+      cmdline: 'root=/dev/ram rw',
       autostart: true,
-      network_relay_url: 'wss://relay.widgetry.org/',
-      bzimage_initrd_from_filesystem: true,
     })
 
     return this.emulator
